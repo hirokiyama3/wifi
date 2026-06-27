@@ -8,7 +8,7 @@
   :root{
     --bg:#ffffff; --card:#ffffff; --ink:#1a2138; --sub:#5b6480;
     --air:#ef6c4d; --hikari:#2a90f0; --hikari-up:#6c5ce7; --debt:#e8a317;
-    --line:#e3e7f0;
+    --line:#e3e7f0; --brand:#2a90f0;
   }
   *{box-sizing:border-box}
   body{
@@ -19,6 +19,7 @@
   .wrap{max-width:960px; margin:0 auto}
   h1{font-size:1.45rem; margin:0 0 4px}
   .lead{color:var(--sub); margin:0 0 18px; font-size:.92rem}
+  .cust{font-weight:800; font-size:1.05rem; color:var(--brand); margin:0 0 10px}
   .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:18px; box-shadow:0 8px 30px rgba(0,0,0,.06)}
   .legend{display:flex; gap:16px; flex-wrap:wrap; margin-bottom:14px; font-size:.84rem}
   .legend span{display:inline-flex; align-items:center; gap:7px}
@@ -77,173 +78,325 @@
   .t-h2{background:rgba(108,92,231,.16); color:#5039c4}
   .note{font-size:.8rem; color:var(--sub); margin-top:8px}
   #debtLegend.hide{display:none}
+
+  /* 作成画面（営業用） */
+  .builder{border:2px dashed var(--brand); background:#f5f9ff}
+  .builder h2{margin:0 0 4px; font-size:1.1rem}
+  .builder .desc{color:var(--sub); font-size:.84rem; margin:0 0 16px}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px 16px}
+  @media(max-width:560px){ .grid{grid-template-columns:1fr} }
+  .field{display:flex; flex-direction:column; gap:4px}
+  .field label{font-size:.78rem; font-weight:700; color:var(--ink)}
+  .field .hint{font-size:.7rem; color:var(--sub); font-weight:400}
+  .field input,.field select{
+    font-family:inherit; font-size:.95rem; padding:10px 12px; border:1px solid var(--line);
+    border-radius:10px; background:#fff; color:var(--ink); width:100%;
+  }
+  .field input:focus,.field select:focus{outline:2px solid rgba(42,144,240,.35); border-color:var(--brand)}
+  .full{grid-column:1 / -1}
+  .debtonly.hide{display:none}
+  .linkbox{margin-top:18px; padding:16px; background:#fff; border:1px solid var(--line); border-radius:12px}
+  .linkbox label{font-size:.78rem; font-weight:700; display:block; margin-bottom:6px}
+  .linkrow{display:flex; gap:8px; flex-wrap:wrap}
+  .linkrow input{flex:1; min-width:0; font-size:.82rem; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#f7f9fc; color:var(--ink)}
+  .btn{
+    border:none; background:var(--brand); color:#fff; font-weight:800; font-size:.9rem;
+    padding:11px 18px; border-radius:10px; cursor:pointer; font-family:inherit; white-space:nowrap;
+  }
+  .btn.sec{background:#eef1f7; color:var(--ink)}
+  .btn:active{transform:translateY(1px)}
+  .copied{color:#1a8f3c; font-size:.8rem; font-weight:700; margin-top:8px; display:none}
+  .copied.show{display:block}
+  .previewlabel{font-size:.78rem; font-weight:800; color:var(--brand); letter-spacing:1px; margin:6px 0 10px}
+  .editbar{margin-bottom:14px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>📶 Speed Wi-Fi HOME 5G → nifty光 料金推移</h1>
-  <p class="lead">Speed Wi-Fi HOME 5G（L13）を 2024/04 利用開始 ／ 2026/06/30 解約 → 7月から nifty光へ乗り換えた場合のシミュレーション</p>
 
-  <!-- 契約タイプ切替 -->
-  <div class="toggle" id="toggle">
-    <button data-mode="install" class="active">分割払い<span class="s">端末残債あり</span></button>
-    <button data-mode="rental">レンタル<span class="s">端末残債なし</span></button>
-  </div>
-
-  <!-- 差額サマリー -->
-  <div class="card" id="diffCard" style="display:flex; align-items:center; gap:16px; flex-wrap:wrap">
-    <div id="diffMain" style="font-size:1.2rem; font-weight:800"></div>
-    <div id="diffSub" style="color:var(--sub); font-size:.85rem"></div>
-  </div>
-
-  <!-- ① ② ③ -->
-  <div class="card">
-    <h2 style="margin:0 0 14px; font-size:1.05rem">大きく3つに分けると</h2>
-    <div class="splits" id="splits"></div>
-  </div>
-
-  <!-- タイムライン -->
-  <div class="card">
-    <h2 style="margin:0 0 12px; font-size:1.05rem">時間軸イメージ（幅＝期間の長さ）</h2>
-    <div class="timeline" id="timeline"></div>
-    <div class="tlabels" id="tlabels"></div>
-    <p class="note">縦の高さではなく横幅が「その料金が続く長さ」を表します。</p>
-  </div>
-
-  <!-- 月別 積み上げ棒 -->
-  <div class="card">
-    <div class="legend">
-      <span><i class="dot" style="background:var(--air)"></i>Speed Wi-Fi HOME 5G 4,818円</span>
-      <span id="debtLegend"><i class="dot" style="background:var(--debt)"></i>端末残債 1,100円</span>
-      <span><i class="dot" style="background:var(--hikari)"></i>nifty光 割引 3,278円</span>
-      <span><i class="dot" style="background:var(--hikari-up)"></i>nifty光 通常 4,378円</span>
+  <!-- ===== 作成画面（営業用・お客さんには表示されない） ===== -->
+  <div class="card builder" id="builder" style="display:none">
+    <h2>🔧 お客さま用リンク作成（営業用）</h2>
+    <p class="desc">数字を入力すると、下にプレビューが出ます。「リンクをコピー」でお客さま専用URLが作れます。お客さまがそのURLを開くと、この入力欄は表示されません。</p>
+    <div class="grid">
+      <div class="field full">
+        <label>お客さま名 <span class="hint">（任意・ページ上部に表示）</span></label>
+        <input type="text" id="f_name" placeholder="例）山田 様">
+      </div>
+      <div class="field">
+        <label>契約タイプ</label>
+        <select id="f_mode">
+          <option value="install">分割払い（端末残債あり）</option>
+          <option value="rental">レンタル（残債なし）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>5G 月額（円）</label>
+        <input type="number" id="f_air" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>利用開始月</label>
+        <input type="month" id="f_start">
+      </div>
+      <div class="field">
+        <label>解約月 <span class="hint">（5Gの最終月）</span></label>
+        <input type="month" id="f_cancel">
+      </div>
+      <div class="field debtonly">
+        <label>端末残債 月額（円）</label>
+        <input type="number" id="f_debt" inputmode="numeric">
+      </div>
+      <div class="field debtonly">
+        <label>残債 終了月</label>
+        <input type="month" id="f_debtEnd">
+      </div>
+      <div class="field">
+        <label>nifty光 割引額（円）</label>
+        <input type="number" id="f_hdisc" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>割引 期間（ヶ月）</label>
+        <input type="number" id="f_discMonths" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>nifty光 通常額（円）</label>
+        <input type="number" id="f_hfull" inputmode="numeric">
+      </div>
     </div>
-    <div class="chart"><div class="bars" id="bars"></div></div>
-    <p class="note">※ 棒の高さ＝月額合計、色＝内訳。解約(2026/06)前後の段差が見えます。</p>
+
+    <div class="linkbox">
+      <label>お客さま専用リンク</label>
+      <div class="linkrow">
+        <input type="text" id="genlink" readonly>
+        <button class="btn" id="copyBtn">リンクをコピー</button>
+        <button class="btn sec" id="openBtn">開く</button>
+      </div>
+      <div class="copied" id="copied">✓ コピーしました</div>
+    </div>
+    <p class="previewlabel">▼ お客さまに表示されるプレビュー</p>
   </div>
 
-  <!-- 詳細テーブル -->
-  <div class="card">
-    <h2 style="margin:0 0 12px; font-size:1.05rem">月別 詳細テーブル</h2>
-    <table id="tbl">
-      <thead><tr><th>期間</th><th>内訳</th><th>月額合計</th><th>区分</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
+  <!-- ===== お客さま表示（レポート本体） ===== -->
+  <div id="report">
+    <div class="editbar" id="editbar" style="display:none">
+      <a href="#build" class="btn sec" style="text-decoration:none; display:inline-block">← 営業用の作成画面に戻る</a>
+    </div>
 
-  <div class="card" style="font-size:.82rem; color:var(--sub)" id="assume"></div>
+    <p class="cust" id="custName" style="display:none"></p>
+    <h1>📶 Speed Wi-Fi HOME 5G → nifty光 料金推移</h1>
+    <p class="lead" id="lead"></p>
+
+    <!-- 契約タイプ切替 -->
+    <div class="toggle" id="toggle">
+      <button data-mode="install" class="active">分割払い<span class="s">端末残債あり</span></button>
+      <button data-mode="rental">レンタル<span class="s">端末残債なし</span></button>
+    </div>
+
+    <!-- 差額サマリー -->
+    <div class="card" id="diffCard" style="display:flex; align-items:center; gap:16px; flex-wrap:wrap">
+      <div id="diffMain" style="font-size:1.2rem; font-weight:800"></div>
+      <div id="diffSub" style="color:var(--sub); font-size:.85rem"></div>
+    </div>
+
+    <!-- ① ② ③ -->
+    <div class="card">
+      <h2 style="margin:0 0 14px; font-size:1.05rem">大きく3つに分けると</h2>
+      <div class="splits" id="splits"></div>
+    </div>
+
+    <!-- タイムライン -->
+    <div class="card">
+      <h2 style="margin:0 0 12px; font-size:1.05rem">時間軸イメージ（幅＝期間の長さ）</h2>
+      <div class="timeline" id="timeline"></div>
+      <div class="tlabels" id="tlabels"></div>
+      <p class="note">縦の高さではなく横幅が「その料金が続く長さ」を表します。</p>
+    </div>
+
+    <!-- 月別 積み上げ棒 -->
+    <div class="card">
+      <div class="legend" id="legend"></div>
+      <div class="chart"><div class="bars" id="bars"></div></div>
+      <p class="note">※ 棒の高さ＝月額合計、色＝内訳。解約前後の段差が見えます。</p>
+    </div>
+
+    <!-- 詳細テーブル -->
+    <div class="card">
+      <h2 style="margin:0 0 12px; font-size:1.05rem">月別 詳細テーブル</h2>
+      <table id="tbl">
+        <thead><tr><th>期間</th><th>内訳</th><th>月額合計</th><th>区分</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card" style="font-size:.82rem; color:var(--sub)" id="assume"></div>
+  </div>
 </div>
 
 <script>
 function ym(y,m){return y*12+(m-1);}
+function ymStr(s){const a=(s||'').split('-'); return ym(+a[0], +a[1]);}
 function fmtYM(v){const y=Math.floor(v/12), m=v%12+1; return y+'/'+String(m).padStart(2,'0');}
-function yen(n){return n.toLocaleString();}
+function fmtInput(v){const y=Math.floor(v/12), m=v%12+1; return y+'-'+String(m).padStart(2,'0');}
+function yen(n){return Number(n).toLocaleString();}
+function clampInt(v,def){const n=parseInt(v,10); return isFinite(n)?n:def;}
 
-// 金額
-const AIR=4818, DEBT=1100, H_DISC=3278, H_FULL=4378;
-// 区間の節目
-const start=ym(2024,4), cancel=ym(2026,6), hStart=ym(2026,7),
-      debtEnd=ym(2027,3), discEnd=hStart+22-1, tailEnd=hStart+22-1+6;
+// 既定値（元のシミュレーションと同じ）
+const DEFAULTS={
+  name:'', mode:'install',
+  start:'2024-04', cancel:'2026-06',
+  air:4818, debt:1100, debtEnd:'2027-03',
+  hDisc:3278, hFull:4378, discMonths:22
+};
 
-// モードごとのブロック定義
-function buildBlocks(mode){
-  const hasDebt = (mode==='install');
+// ---- リンク用エンコード/デコード ----
+function encodeCfg(c){
+  try{ return 'd='+btoa(unescape(encodeURIComponent(JSON.stringify(c)))); }
+  catch(e){ return ''; }
+}
+function decodeCfg(){
+  try{
+    const m=/d=([^&]+)/.exec(location.hash.slice(1));
+    if(!m) return null;
+    const o=JSON.parse(decodeURIComponent(escape(atob(m[1]))));
+    return Object.assign({}, DEFAULTS, o);
+  }catch(e){ return null; }
+}
+
+// 表示モードの判定
+function isBuildMode(){
+  const h=location.hash.slice(1);
+  if(/(^|&)edit=1/.test(h) || h==='build' || h==='') return true;
+  return !decodeCfg(); // 不正なハッシュなら作成画面
+}
+
+// ====== 計算（cfg → 区切りブロック） ======
+function compute(cfg){
+  const start=ymStr(cfg.start), cancel=ymStr(cfg.cancel), hStart=cancel+1;
+  const discMonths=Math.max(1, clampInt(cfg.discMonths, 22));
+  const discEnd=hStart+discMonths-1;
+  let debtEnd=ymStr(cfg.debtEnd);
+  if(!(debtEnd>=hStart)) debtEnd=hStart-1;        // 残債が乗り換え前に終わる＝残債なし扱い
+  if(debtEnd>discEnd) debtEnd=discEnd;            // 念のため割引期間内に収める
+  const tailEnd=discEnd+6;
+  return {start,cancel,hStart,discMonths,discEnd,debtEnd,tailEnd};
+}
+
+function buildBlocks(cfg, K){
+  const hasDebt=(cfg.mode==='install') && (K.debtEnd>=K.hStart);
+  const AIR=+cfg.air, DEBT=+cfg.debt, H_DISC=+cfg.hDisc, H_FULL=+cfg.hFull;
   const blocks=[
-    {from:start, to:cancel, air:AIR, debt:0, hik:0, total:AIR,
-     color:'var(--air)', tag:'t-air', tagtxt:'5G'},
+    {from:K.start, to:K.cancel, air:AIR, debt:0, hik:0, total:AIR,
+     color:'var(--air)', tag:'t-air', tagtxt:'5G'}
   ];
   if(hasDebt){
     blocks.push(
-      {from:hStart, to:debtEnd, air:0, debt:DEBT, hik:H_DISC, total:DEBT+H_DISC,
-       color:'var(--debt)', tag:'t-dup', tagtxt:'光＋残債'},
-      {from:debtEnd+1, to:discEnd, air:0, debt:0, hik:H_DISC, total:H_DISC,
-       color:'var(--hikari)', tag:'t-h1', tagtxt:'割引中'});
+      {from:K.hStart, to:K.debtEnd, air:0, debt:DEBT, hik:H_DISC, total:DEBT+H_DISC,
+       color:'var(--debt)', tag:'t-dup', tagtxt:'光＋残債'});
+    if(K.debtEnd+1<=K.discEnd){
+      blocks.push(
+        {from:K.debtEnd+1, to:K.discEnd, air:0, debt:0, hik:H_DISC, total:H_DISC,
+         color:'var(--hikari)', tag:'t-h1', tagtxt:'割引中'});
+    }
   } else {
     blocks.push(
-      {from:hStart, to:discEnd, air:0, debt:0, hik:H_DISC, total:H_DISC,
+      {from:K.hStart, to:K.discEnd, air:0, debt:0, hik:H_DISC, total:H_DISC,
        color:'var(--hikari)', tag:'t-h1', tagtxt:'割引中'});
   }
   blocks.push(
-    {from:discEnd+1, to:tailEnd, air:0, debt:0, hik:H_FULL, total:H_FULL,
+    {from:K.discEnd+1, to:K.tailEnd, air:0, debt:0, hik:H_FULL, total:H_FULL,
      color:'var(--hikari-up)', tag:'t-h2', tagtxt:'通常'});
   return blocks;
 }
 
-function render(mode){
-  const hasDebt = (mode==='install');
-  const blocks = buildBlocks(mode);
+// ====== 描画 ======
+function render(cfg){
+  const hasDebt=(cfg.mode==='install');
+  const K=compute(cfg);
+  const realDebt=hasDebt && (K.debtEnd>=K.hStart);
+  const blocks=buildBlocks(cfg, K);
+  const AIR=+cfg.air, DEBT=+cfg.debt, H_DISC=+cfg.hDisc, H_FULL=+cfg.hFull;
 
-  // ---- 差額サマリー（分割 − レンタル ＝ 残債総額）----
-  const debtMonths = debtEnd - hStart + 1;   // 2026/07〜2027/03 ＝ 9ヶ月
-  const debtTotal = DEBT * debtMonths;        // 1,100 × 9 ＝ 9,900円
-  const diffMain = document.getElementById('diffMain');
-  const diffSub  = document.getElementById('diffSub');
-  if(hasDebt){
-    diffMain.innerHTML = `分割払いは <span style="color:var(--debt)">+${yen(debtTotal)}円</span> 多くかかる`;
-    diffSub.textContent = `端末残債 ${yen(DEBT)}円 × ${debtMonths}ヶ月（2026/07〜2027/03）。レンタルなら不要な分です。`;
+  // 顧客名・リード文
+  const cn=document.getElementById('custName');
+  if(cfg.name && cfg.name.trim()){ cn.style.display='block'; cn.textContent=cfg.name.trim()+' 専用 料金シミュレーション'; }
+  else { cn.style.display='none'; }
+  document.getElementById('lead').textContent=
+    `Speed Wi-Fi HOME 5G を ${fmtYM(K.start)} 利用開始 ／ ${fmtYM(K.cancel)} 解約 → ${fmtYM(K.hStart)} から nifty光へ乗り換えた場合のシミュレーション`;
+
+  // トグルの状態
+  document.querySelectorAll('#toggle button').forEach(b=>b.classList.toggle('active', b.dataset.mode===cfg.mode));
+
+  // ---- 凡例 ----
+  document.getElementById('legend').innerHTML=
+    `<span><i class="dot" style="background:var(--air)"></i>Speed Wi-Fi HOME 5G ${yen(AIR)}円</span>`+
+    (hasDebt?`<span id="debtLegend"><i class="dot" style="background:var(--debt)"></i>端末残債 ${yen(DEBT)}円</span>`:'')+
+    `<span><i class="dot" style="background:var(--hikari)"></i>nifty光 割引 ${yen(H_DISC)}円</span>`+
+    `<span><i class="dot" style="background:var(--hikari-up)"></i>nifty光 通常 ${yen(H_FULL)}円</span>`;
+
+  // ---- 差額サマリー ----
+  const debtMonths=realDebt ? (K.debtEnd-K.hStart+1) : 0;
+  const debtTotal=DEBT*debtMonths;
+  const diffMain=document.getElementById('diffMain'), diffSub=document.getElementById('diffSub');
+  if(hasDebt && debtMonths>0){
+    diffMain.innerHTML=`分割払いは <span style="color:var(--debt)">+${yen(debtTotal)}円</span> 多くかかる`;
+    diffSub.textContent=`端末残債 ${yen(DEBT)}円 × ${debtMonths}ヶ月（${fmtYM(K.hStart)}〜${fmtYM(K.debtEnd)}）。レンタルなら不要な分です。`;
+  } else if(hasDebt){
+    diffMain.innerHTML=`端末残債は実質なし`;
+    diffSub.textContent=`設定上、残債の期間がありません。`;
   } else {
-    diffMain.innerHTML = `レンタルは端末残債 <span style="color:var(--hikari)">0円</span>`;
-    diffSub.textContent = `分割払いと比べて ${yen(debtTotal)}円（${yen(DEBT)}円 × ${debtMonths}ヶ月）安くなります。`;
+    diffMain.innerHTML=`レンタルは端末残債 <span style="color:var(--hikari)">0円</span>`;
+    diffSub.textContent=`返却で支払い終了。光だけの料金になります。`;
   }
 
   // ---- 3区切りカード ----
+  const m1=realDebt?(K.debtEnd-K.hStart+1):0;
+  const m2=realDebt?(K.discEnd-K.debtEnd):0;
   const sp=document.getElementById('splits');
-  if(hasDebt){
-    sp.innerHTML=`
-      <div class="split">
-        <span class="bar" style="background:var(--air)"></span>
-        <div class="num">① 7月より前</div><h3>Speed Wi-Fi HOME 5G</h3>
-        <div class="when">2024/04 〜 2026/06</div>
-        <div class="total">4,818<small> 円/月</small></div>
-        <div class="bd">5G ホームルーター利用中の月額</div>
-      </div>
+  let card2;
+  if(realDebt){
+    card2=`
       <div class="split">
         <span class="bar" style="background:var(--debt)"></span>
-        <div class="num">② 7月より後（22ヶ月）</div><h3>nifty光 ＋ 残債</h3>
-        <div class="when">2026/07 〜 2028/04</div>
-        <div class="total">4,378 → 3,278<small> 円/月</small></div>
-        <div class="bd">残債が <b>2027/03</b> で終わると一段下がる</div>
+        <div class="num">② 乗り換え後（${K.discMonths}ヶ月）</div><h3>nifty光 ＋ 残債</h3>
+        <div class="when">${fmtYM(K.hStart)} 〜 ${fmtYM(K.discEnd)}</div>
+        <div class="total">${yen(H_DISC+DEBT)} → ${yen(H_DISC)}<small> 円/月</small></div>
+        <div class="bd">残債が <b>${fmtYM(K.debtEnd)}</b> で終わると一段下がる</div>
         <div class="step">
-          <div class="row"><span>2026/07〜2027/03（9ヶ月）</span><b>4,378円</b></div>
-          <div class="row" style="color:var(--sub)"><span>＝光3,278 ＋ 残債1,100</span><span></span></div>
-          <div class="row" style="margin-top:7px"><span>2027/04〜2028/04（13ヶ月）</span><b>3,278円</b></div>
-          <div class="row" style="color:var(--sub)"><span>＝光のみ（割引中）</span><span></span></div>
+          <div class="row"><span>${fmtYM(K.hStart)}〜${fmtYM(K.debtEnd)}（${m1}ヶ月）</span><b>${yen(H_DISC+DEBT)}円</b></div>
+          <div class="row" style="color:var(--sub)"><span>＝光${yen(H_DISC)} ＋ 残債${yen(DEBT)}</span><span></span></div>
+          ${m2>0?`<div class="row" style="margin-top:7px"><span>${fmtYM(K.debtEnd+1)}〜${fmtYM(K.discEnd)}（${m2}ヶ月）</span><b>${yen(H_DISC)}円</b></div>
+          <div class="row" style="color:var(--sub)"><span>＝光のみ（割引中）</span><span></span></div>`:''}
         </div>
-      </div>
-      <div class="split">
-        <span class="bar" style="background:var(--hikari-up)"></span>
-        <div class="num">③ 22ヶ月経過後</div><h3>nifty光（通常）</h3>
-        <div class="when">2028/05 〜 以降ずっと</div>
-        <div class="total">4,378<small> 円/月</small></div>
-        <div class="bd">光の割引が終わり通常料金へ</div>
       </div>`;
   } else {
-    sp.innerHTML=`
-      <div class="split">
-        <span class="bar" style="background:var(--air)"></span>
-        <div class="num">① 7月より前</div><h3>Speed Wi-Fi HOME 5G</h3>
-        <div class="when">2024/04 〜 2026/06</div>
-        <div class="total">4,818<small> 円/月</small></div>
-        <div class="bd">5G ホームルーター利用中の月額</div>
-      </div>
+    card2=`
       <div class="split">
         <span class="bar" style="background:var(--hikari)"></span>
-        <div class="num">② 7月より後（22ヶ月）</div><h3>nifty光（割引）</h3>
-        <div class="when">2026/07 〜 2028/04</div>
-        <div class="total">3,278<small> 円/月</small></div>
-        <div class="bd">レンタルなので<b>残債なし</b>。光だけの料金</div>
-      </div>
-      <div class="split">
-        <span class="bar" style="background:var(--hikari-up)"></span>
-        <div class="num">③ 22ヶ月経過後</div><h3>nifty光（通常）</h3>
-        <div class="when">2028/05 〜 以降ずっと</div>
-        <div class="total">4,378<small> 円/月</small></div>
-        <div class="bd">光の割引が終わり通常料金へ</div>
+        <div class="num">② 乗り換え後（${K.discMonths}ヶ月）</div><h3>nifty光（割引）</h3>
+        <div class="when">${fmtYM(K.hStart)} 〜 ${fmtYM(K.discEnd)}</div>
+        <div class="total">${yen(H_DISC)}<small> 円/月</small></div>
+        <div class="bd">${hasDebt?'残債なし。':'レンタルなので<b>残債なし</b>。'}光だけの料金</div>
       </div>`;
   }
+  sp.innerHTML=`
+    <div class="split">
+      <span class="bar" style="background:var(--air)"></span>
+      <div class="num">① 乗り換え前</div><h3>Speed Wi-Fi HOME 5G</h3>
+      <div class="when">${fmtYM(K.start)} 〜 ${fmtYM(K.cancel)}</div>
+      <div class="total">${yen(AIR)}<small> 円/月</small></div>
+      <div class="bd">5G ホームルーター利用中の月額</div>
+    </div>
+    ${card2}
+    <div class="split">
+      <span class="bar" style="background:var(--hikari-up)"></span>
+      <div class="num">③ ${K.discMonths}ヶ月経過後</div><h3>nifty光（通常）</h3>
+      <div class="when">${fmtYM(K.discEnd+1)} 〜 以降ずっと</div>
+      <div class="total">${yen(H_FULL)}<small> 円/月</small></div>
+      <div class="bd">光の割引が終わり通常料金へ</div>
+    </div>`;
 
   // ---- タイムライン ----
-  const totalMonths=tailEnd-start+1;
+  const totalMonths=K.tailEnd-K.start+1;
   const tl=document.getElementById('timeline'); tl.innerHTML='';
   const tlab=document.getElementById('tlabels'); tlab.innerHTML='';
   blocks.forEach((b,i)=>{
@@ -255,18 +408,17 @@ function render(mode){
   });
 
   // ---- 月別棒グラフ ----
-  document.getElementById('debtLegend').classList.toggle('hide', !hasDebt);
   const months=[];
-  for(let v=start; v<=tailEnd; v++){
+  for(let v=K.start; v<=K.tailEnd; v++){
     let air=0,debt=0,hik=0;
-    if(v<=cancel) air=AIR;
-    else { hik=(v<=discEnd)?H_DISC:H_FULL; if(hasDebt && v<=debtEnd) debt=DEBT; }
+    if(v<=K.cancel) air=AIR;
+    else { hik=(v<=K.discEnd)?H_DISC:H_FULL; if(realDebt && v<=K.debtEnd) debt=DEBT; }
     months.push({v,air,debt,hik,total:air+debt+hik});
   }
-  const maxTotal=Math.max(...months.map(m=>m.total));
+  const maxTotal=Math.max.apply(null, months.map(m=>m.total));
   const barsEl=document.getElementById('bars'); barsEl.innerHTML='';
   months.forEach((m,i)=>{
-    const show=(i%3===0)||m.v===cancel||m.v===hStart||(hasDebt&&m.v===debtEnd)||m.v===discEnd||m.v===tailEnd;
+    const show=(i%3===0)||m.v===K.cancel||m.v===K.hStart||(realDebt&&m.v===K.debtEnd)||m.v===K.discEnd||m.v===K.tailEnd;
     if(!show) return;
     const H=160;
     const seg=(amt,col)=> amt? `<div class="ssg" style="height:${amt/maxTotal*H}px;background:${col}"></div>`:'';
@@ -302,28 +454,102 @@ function render(mode){
 
   // ---- 前提条件 ----
   const as=document.getElementById('assume');
-  if(hasDebt){
+  if(realDebt){
     as.innerHTML=`<b style="color:var(--ink)">前提条件（分割払い）</b><br>
-      ・Speed Wi-Fi HOME 5G（L13）: 契約中 4,818円/月。解約後は端末分割残債 1,100円/月が 2027/03 まで残る。<br>
-      ・nifty光: 開通月（2026/07）から 3,278円 × 22ヶ月、以降 4,378円/月。<br>
-      ・「7月より後（②）」の22ヶ月は、残債終了（2027/03）を境に 4,378円 → 3,278円 に変化します。<br>
-      ・残債終了は端末を 2024/04 から36回分割で支払う前提（最終 2027/03）。回数が違う場合は教えてください。`;
+      ・Speed Wi-Fi HOME 5G: 契約中 ${yen(AIR)}円/月。解約後は端末分割残債 ${yen(DEBT)}円/月が ${fmtYM(K.debtEnd)} まで残る。<br>
+      ・nifty光: 開通月（${fmtYM(K.hStart)}）から ${yen(H_DISC)}円 × ${K.discMonths}ヶ月、以降 ${yen(H_FULL)}円/月。<br>
+      ・乗り換え後の${K.discMonths}ヶ月は、残債終了（${fmtYM(K.debtEnd)}）を境に ${yen(H_DISC+DEBT)}円 → ${yen(H_DISC)}円 に変化します。`;
+  } else if(hasDebt){
+    as.innerHTML=`<b style="color:var(--ink)">前提条件（分割払い）</b><br>
+      ・Speed Wi-Fi HOME 5G: 契約中 ${yen(AIR)}円/月。<br>
+      ・nifty光: 開通月（${fmtYM(K.hStart)}）から ${yen(H_DISC)}円 × ${K.discMonths}ヶ月、以降 ${yen(H_FULL)}円/月。`;
   } else {
     as.innerHTML=`<b style="color:var(--ink)">前提条件（レンタル）</b><br>
-      ・Speed Wi-Fi HOME 5G（L13）: 契約中 4,818円/月。<b style="color:var(--ink)">レンタル端末のため解約後の残債なし</b>（返却で支払い終了）。<br>
-      ・nifty光: 開通月（2026/07）から 3,278円 × 22ヶ月、以降 4,378円/月。<br>
-      ・7月以降は二重払いがなく、いきなり 3,278円 になります。`;
+      ・Speed Wi-Fi HOME 5G: 契約中 ${yen(AIR)}円/月。<b style="color:var(--ink)">レンタル端末のため解約後の残債なし</b>（返却で支払い終了）。<br>
+      ・nifty光: 開通月（${fmtYM(K.hStart)}）から ${yen(H_DISC)}円 × ${K.discMonths}ヶ月、以降 ${yen(H_FULL)}円/月。<br>
+      ・乗り換え後は二重払いがなく、いきなり ${yen(H_DISC)}円 になります。`;
   }
 }
 
-// 切替イベント
-document.getElementById('toggle').addEventListener('click',e=>{
-  const btn=e.target.closest('button'); if(!btn) return;
-  document.querySelectorAll('#toggle button').forEach(b=>b.classList.toggle('active', b===btn));
-  render(btn.dataset.mode);
-});
+// ====== 作成画面（営業用）======
+function readForm(){
+  return {
+    name:document.getElementById('f_name').value,
+    mode:document.getElementById('f_mode').value,
+    air:clampInt(document.getElementById('f_air').value, DEFAULTS.air),
+    start:document.getElementById('f_start').value||DEFAULTS.start,
+    cancel:document.getElementById('f_cancel').value||DEFAULTS.cancel,
+    debt:clampInt(document.getElementById('f_debt').value, DEFAULTS.debt),
+    debtEnd:document.getElementById('f_debtEnd').value||DEFAULTS.debtEnd,
+    hDisc:clampInt(document.getElementById('f_hdisc').value, DEFAULTS.hDisc),
+    discMonths:clampInt(document.getElementById('f_discMonths').value, DEFAULTS.discMonths),
+    hFull:clampInt(document.getElementById('f_hfull').value, DEFAULTS.hFull)
+  };
+}
+function fillForm(c){
+  document.getElementById('f_name').value=c.name||'';
+  document.getElementById('f_mode').value=c.mode;
+  document.getElementById('f_air').value=c.air;
+  document.getElementById('f_start').value=c.start;
+  document.getElementById('f_cancel').value=c.cancel;
+  document.getElementById('f_debt').value=c.debt;
+  document.getElementById('f_debtEnd').value=c.debtEnd;
+  document.getElementById('f_hdisc').value=c.hDisc;
+  document.getElementById('f_discMonths').value=c.discMonths;
+  document.getElementById('f_hfull').value=c.hFull;
+}
+function syncDebtFields(mode){
+  document.querySelectorAll('.debtonly').forEach(e=>e.classList.toggle('hide', mode!=='install'));
+}
+function updateBuilder(){
+  const cfg=readForm();
+  syncDebtFields(cfg.mode);
+  const link=location.origin+location.pathname+'#'+encodeCfg(cfg);
+  document.getElementById('genlink').value=link;
+  render(cfg);
+  return link;
+}
 
-render('install');
+// ====== 起動 ======
+function boot(){
+  const buildMode=isBuildMode();
+  const viewCfg=decodeCfg();
+
+  if(buildMode){
+    document.getElementById('builder').style.display='block';
+    document.getElementById('editbar').style.display='none';
+    document.getElementById('toggle').style.display='none'; // 作成画面では契約タイプはフォームで選ぶ
+    fillForm(viewCfg || DEFAULTS);
+    updateBuilder();
+    // 入力監視
+    ['f_name','f_mode','f_air','f_start','f_cancel','f_debt','f_debtEnd','f_hdisc','f_discMonths','f_hfull']
+      .forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input',updateBuilder); el.addEventListener('change',updateBuilder); });
+    // コピー
+    document.getElementById('copyBtn').addEventListener('click',()=>{
+      const link=updateBuilder();
+      const done=()=>{const c=document.getElementById('copied'); c.classList.add('show'); setTimeout(()=>c.classList.remove('show'),2200);};
+      if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(link).then(done,()=>{document.getElementById('genlink').select();done();}); }
+      else { document.getElementById('genlink').select(); try{document.execCommand('copy');}catch(e){} done(); }
+    });
+    // 開く
+    document.getElementById('openBtn').addEventListener('click',()=>{ window.open(updateBuilder(),'_blank'); });
+  } else {
+    // お客さま表示
+    document.getElementById('builder').style.display='none';
+    document.getElementById('editbar').style.display='block';
+    document.getElementById('toggle').style.display='inline-flex';
+    const cfg=viewCfg;
+    render(cfg);
+    document.getElementById('toggle').addEventListener('click',e=>{
+      const btn=e.target.closest('button'); if(!btn) return;
+      cfg.mode=btn.dataset.mode;
+      render(cfg);
+    });
+  }
+}
+
+window.addEventListener('hashchange',()=>{ location.reload(); });
+boot();
 </script>
 </body>
 </html>
