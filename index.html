@@ -3,74 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#15315f">
 <title>Speed Wi-Fi HOME 5G → nifty光 料金推移シミュレーション</title>
 <style>
   :root{
-    --bg:#ffffff; --card:#ffffff; --ink:#1a2138; --sub:#5b6480;
+    --navy:#15315f; --navy2:#1b4ea0; --blue:#2a90f0; --sky:#eaf2fd;
+    --ink:#16213a; --sub:#64708a; --line:#e6ebf3; --paper:#f4f7fc; --card:#ffffff;
     --air:#ef6c4d; --hikari:#2a90f0; --hikari-up:#6c5ce7; --debt:#e8a317;
-    --line:#e3e7f0; --brand:#2a90f0;
+    --ok:#1a8f3c;
   }
   *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
   body{
     margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
-    background:#f4f6fb; color:var(--ink);
-    padding:20px; line-height:1.6;
+    background:var(--paper); color:var(--ink); line-height:1.6;
   }
-  .wrap{max-width:960px; margin:0 auto}
-  h1{font-size:1.45rem; margin:0 0 4px}
-  .lead{color:var(--sub); margin:0 0 18px; font-size:.92rem}
-  .cust{font-weight:800; font-size:1.05rem; color:var(--brand); margin:0 0 10px}
-  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:18px; box-shadow:0 8px 30px rgba(0,0,0,.06)}
-  .legend{display:flex; gap:16px; flex-wrap:wrap; margin-bottom:14px; font-size:.84rem}
-  .legend span{display:inline-flex; align-items:center; gap:7px}
-  .dot{width:13px; height:13px; border-radius:4px; display:inline-block}
+  .wrap{max-width:980px; margin:0 auto; padding:0 16px 40px}
+
+  /* ヒーロー */
+  .hero{
+    background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);
+    color:#fff; padding:26px 16px 64px; margin-bottom:-44px;
+    border-bottom-left-radius:26px; border-bottom-right-radius:26px;
+  }
+  .hero .inner{max-width:980px; margin:0 auto}
+  .hero .badge{display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.16); color:#fff;
+    font-size:.72rem; font-weight:700; padding:5px 11px; border-radius:999px; margin-bottom:12px; letter-spacing:.3px}
+  .hero h1{font-size:1.5rem; line-height:1.35; margin:0 0 8px; font-weight:800; letter-spacing:-.01em}
+  .hero .lead{color:rgba(255,255,255,.86); margin:0; font-size:.9rem}
+  .hero .cust{font-size:1rem; font-weight:800; color:#cfe2ff; margin:0 0 6px}
+  @media(max-width:560px){ .hero h1{font-size:1.24rem} }
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:20px;
+    margin-bottom:16px; box-shadow:0 10px 30px rgba(21,49,95,.07)}
+  .card h2{margin:0 0 14px; font-size:1.05rem; font-weight:800; display:flex; align-items:center; gap:8px}
+  .card h2 .ic{width:22px; height:22px; border-radius:7px; background:var(--sky); color:var(--navy2);
+    display:inline-flex; align-items:center; justify-content:center; font-size:.8rem}
 
   /* 契約タイプ切替 */
-  .toggle{display:inline-flex; background:#eef1f7; border-radius:12px; padding:5px; gap:4px; margin-bottom:18px; border:1px solid var(--line)}
-  .toggle button{
-    border:none; background:transparent; color:var(--sub); font-weight:700; font-size:.9rem;
-    padding:9px 18px; border-radius:9px; cursor:pointer; font-family:inherit; transition:.15s;
-  }
+  .toggle{display:inline-flex; background:#eef2f9; border-radius:14px; padding:5px; gap:4px; margin:0 0 16px; border:1px solid var(--line)}
+  .toggle button{border:none; background:transparent; color:var(--sub); font-weight:700; font-size:.9rem;
+    padding:10px 20px; border-radius:10px; cursor:pointer; font-family:inherit; transition:.15s}
   .toggle button .s{display:block; font-size:.7rem; font-weight:600; opacity:.85; margin-top:1px}
-  .toggle button.active{background:#fff; color:var(--ink); box-shadow:0 2px 8px rgba(0,0,0,.1)}
+  .toggle button.active{background:#fff; color:var(--navy2); box-shadow:0 3px 10px rgba(21,49,95,.12)}
 
-  /* 3区切りの大ブロック */
-  .splits{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+  /* 差額バナー */
+  #diffCard{display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    background:linear-gradient(135deg,#fff 0%,var(--sky) 130%); border-color:#d7e6fb}
+  #diffMain{font-size:1.18rem; font-weight:800}
+  #diffSub{color:var(--sub); font-size:.85rem}
+
+  /* 3区切り */
+  .splits{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
   .split{border:1px solid var(--line); border-radius:14px; padding:16px; position:relative; overflow:hidden; background:#fbfcfe}
   .split .bar{position:absolute; left:0; top:0; bottom:0; width:5px}
-  .split .num{font-size:.72rem; color:var(--sub); font-weight:700; letter-spacing:1px}
-  .split h3{margin:2px 0 2px; font-size:1.02rem}
+  .split .num{font-size:.72rem; color:var(--sub); font-weight:700; letter-spacing:.5px}
+  .split h3{margin:3px 0 2px; font-size:1.02rem}
   .split .when{color:var(--sub); font-size:.78rem; margin-bottom:10px}
-  .split .total{font-size:1.55rem; font-weight:800; letter-spacing:-.5px}
+  .split .total{font-size:1.5rem; font-weight:800; letter-spacing:-.5px}
   .split .total small{font-size:.8rem; color:var(--sub); font-weight:600}
   .split .bd{font-size:.78rem; color:var(--sub); margin-top:6px}
   .split .bd b{color:var(--ink); font-weight:600}
-  .split .step{margin-top:10px; font-size:.74rem; background:#f1f4fa; border-radius:8px; padding:8px 10px}
+  .split .step{margin-top:10px; font-size:.74rem; background:#f1f5fb; border-radius:10px; padding:9px 11px}
   .split .step .row{display:flex; justify-content:space-between; gap:8px}
   .split .step .row+.row{margin-top:4px}
   @media(max-width:680px){ .splits{grid-template-columns:1fr} }
 
-  /* タイムライン（幅＝期間に比例） */
-  .timeline{display:flex; height:60px; border-radius:10px; overflow:hidden; margin:4px 0 6px}
-  .seg{display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:.8rem; min-width:0; padding:0 2px; text-align:center; text-shadow:0 1px 2px rgba(0,0,0,.25)}
+  /* タイムライン */
+  .timeline{display:flex; height:60px; border-radius:12px; overflow:hidden; margin:4px 0 6px}
+  .seg{display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-weight:800;
+    font-size:.8rem; min-width:0; padding:0 2px; text-align:center; text-shadow:0 1px 2px rgba(0,0,0,.25)}
   .seg small{font-weight:700; font-size:.66rem; opacity:.9}
   .tlabels{display:flex; font-size:.66rem; color:var(--sub)}
   .tlabels span{text-align:center}
 
   /* 棒グラフ */
-  .chart{width:100%; overflow-x:auto}
-  .bars{display:flex; align-items:flex-end; gap:5px; height:230px; padding:22px 4px 0; min-width:640px}
-  .barcol{flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:5px; min-width:40px}
-  .stack{width:100%; border-radius:6px 6px 0 0; display:flex; flex-direction:column-reverse; overflow:hidden}
+  .chart{width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch}
+  .bars{display:flex; align-items:flex-end; gap:5px; height:230px; padding:22px 4px 0; min-width:560px}
+  .barcol{flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:5px; min-width:38px}
+  .stack{width:100%; border-radius:7px 7px 0 0; display:flex; flex-direction:column-reverse; overflow:hidden}
   .ssg{width:100%}
   .barcol .lbl{font-size:.68rem; color:var(--sub); text-align:center; line-height:1.2}
   .barcol .val{font-size:.7rem; font-weight:700}
 
-  table{border-collapse:collapse; width:100%; font-size:.86rem}
-  th,td{padding:9px 10px; text-align:center; border-bottom:1px solid var(--line)}
-  th{color:var(--sub); font-weight:600; font-size:.8rem}
+  .legend{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; font-size:.82rem}
+  .legend span{display:inline-flex; align-items:center; gap:7px}
+  .dot{width:13px; height:13px; border-radius:4px; display:inline-block}
+
+  /* テーブル */
+  .tblwrap{overflow-x:auto}
+  table{border-collapse:collapse; width:100%; font-size:.86rem; min-width:420px}
+  th,td{padding:10px; text-align:center; border-bottom:1px solid var(--line)}
+  th{color:var(--sub); font-weight:700; font-size:.78rem; background:#fafcfe}
   td.period{text-align:left; white-space:nowrap}
-  .price{font-weight:700; font-variant-numeric:tabular-nums}
+  .price{font-weight:800; font-variant-numeric:tabular-nums}
   .tag{display:inline-block; padding:2px 9px; border-radius:999px; font-size:.72rem; font-weight:700}
   .t-air{background:rgba(239,108,77,.16); color:#c2410c}
   .t-dup{background:rgba(232,163,23,.18); color:#9a6800}
@@ -78,46 +104,57 @@
   .t-h2{background:rgba(108,92,231,.16); color:#5039c4}
   .note{font-size:.8rem; color:var(--sub); margin-top:8px}
   #debtLegend.hide{display:none}
+  #assume{font-size:.82rem; color:var(--sub); line-height:1.8}
 
   /* 作成画面（営業用） */
-  .builder{border:2px dashed var(--brand); background:#f5f9ff}
-  .builder h2{margin:0 0 4px; font-size:1.1rem}
+  .builder{border:1.5px solid #cfe0fa; background:linear-gradient(180deg,#f7faff 0%,#fff 60%)}
   .builder .desc{color:var(--sub); font-size:.84rem; margin:0 0 16px}
-  .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px 16px}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px 14px}
   @media(max-width:560px){ .grid{grid-template-columns:1fr} }
-  .field{display:flex; flex-direction:column; gap:4px}
+  .field{display:flex; flex-direction:column; gap:5px}
   .field label{font-size:.78rem; font-weight:700; color:var(--ink)}
-  .field .hint{font-size:.7rem; color:var(--sub); font-weight:400}
-  .field input,.field select{
-    font-family:inherit; font-size:.95rem; padding:10px 12px; border:1px solid var(--line);
-    border-radius:10px; background:#fff; color:var(--ink); width:100%;
-  }
-  .field input:focus,.field select:focus{outline:2px solid rgba(42,144,240,.35); border-color:var(--brand)}
+  .field .hint{font-size:.7rem; color:var(--sub); font-weight:500}
+  .field input,.field select{font-family:inherit; font-size:16px; padding:11px 12px; border:1px solid var(--line);
+    border-radius:11px; background:#fff; color:var(--ink); width:100%; transition:.15s}
+  .field input:focus,.field select:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(42,144,240,.16)}
   .full{grid-column:1 / -1}
   .debtonly.hide{display:none}
-  .linkbox{margin-top:18px; padding:16px; background:#fff; border:1px solid var(--line); border-radius:12px}
-  .linkbox label{font-size:.78rem; font-weight:700; display:block; margin-bottom:6px}
+  .linkbox{margin-top:18px; padding:16px; background:var(--navy); border-radius:14px; color:#fff}
+  .linkbox label{font-size:.78rem; font-weight:700; display:block; margin-bottom:8px; color:#cfe2ff}
   .linkrow{display:flex; gap:8px; flex-wrap:wrap}
-  .linkrow input{flex:1; min-width:0; font-size:.82rem; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#f7f9fc; color:var(--ink)}
-  .btn{
-    border:none; background:var(--brand); color:#fff; font-weight:800; font-size:.9rem;
-    padding:11px 18px; border-radius:10px; cursor:pointer; font-family:inherit; white-space:nowrap;
-  }
-  .btn.sec{background:#eef1f7; color:var(--ink)}
+  .linkrow input{flex:1; min-width:0; font-size:.82rem; padding:11px 12px; border:1px solid rgba(255,255,255,.2);
+    border-radius:10px; background:rgba(255,255,255,.1); color:#fff}
+  .btn{border:none; background:var(--blue); color:#fff; font-weight:800; font-size:.9rem; padding:12px 18px;
+    border-radius:11px; cursor:pointer; font-family:inherit; white-space:nowrap; transition:.12s}
+  .btn:hover{filter:brightness(1.05)}
   .btn:active{transform:translateY(1px)}
-  .copied{color:#1a8f3c; font-size:.8rem; font-weight:700; margin-top:8px; display:none}
+  .btn.sec{background:rgba(255,255,255,.16); color:#fff}
+  .copied{color:#bff7cf; font-size:.82rem; font-weight:700; margin-top:10px; display:none}
   .copied.show{display:block}
-  .previewlabel{font-size:.78rem; font-weight:800; color:var(--brand); letter-spacing:1px; margin:6px 0 10px}
-  .editbar{margin-bottom:14px}
+  .previewlabel{font-size:.76rem; font-weight:800; color:var(--navy2); letter-spacing:.5px; margin:18px 0 0;
+    padding-top:14px; border-top:1px dashed #cfe0fa}
+  .editbar{margin:0 0 14px}
+  .editbar a{text-decoration:none; display:inline-block}
 </style>
 </head>
 <body>
+
+<!-- ヒーロー -->
+<div class="hero">
+  <div class="inner">
+    <span class="badge">📶 料金推移シミュレーション</span>
+    <p class="cust" id="custName" style="display:none"></p>
+    <h1>Speed Wi-Fi HOME 5G → nifty光</h1>
+    <p class="lead" id="lead"></p>
+  </div>
+</div>
+
 <div class="wrap">
 
-  <!-- ===== 作成画面（営業用・お客さんには表示されない） ===== -->
+  <!-- ===== 作成画面（営業用） ===== -->
   <div class="card builder" id="builder" style="display:none">
-    <h2>🔧 お客さま用リンク作成（営業用）</h2>
-    <p class="desc">数字を入力すると、下にプレビューが出ます。「リンクをコピー」でお客さま専用URLが作れます。お客さまがそのURLを開くと、この入力欄は表示されません。</p>
+    <h2><span class="ic">🔧</span> お客さま用リンク作成（営業用）</h2>
+    <p class="desc">数字を入力すると下にプレビューが出ます。「リンクをコピー」でお客さま専用URLが作れます。お客さまがそのURLを開くと、この入力欄は表示されません。</p>
     <div class="grid">
       <div class="field full">
         <label>お客さま名 <span class="hint">（任意・ページ上部に表示）</span></label>
@@ -176,15 +213,11 @@
     <p class="previewlabel">▼ お客さまに表示されるプレビュー</p>
   </div>
 
-  <!-- ===== お客さま表示（レポート本体） ===== -->
+  <!-- ===== お客さま表示 ===== -->
   <div id="report">
     <div class="editbar" id="editbar" style="display:none">
-      <a href="#build" class="btn sec" style="text-decoration:none; display:inline-block">← 営業用の作成画面に戻る</a>
+      <a href="#build" class="btn sec" style="background:#eef2f9;color:var(--navy2)">← 営業用の作成画面に戻る</a>
     </div>
-
-    <p class="cust" id="custName" style="display:none"></p>
-    <h1>📶 Speed Wi-Fi HOME 5G → nifty光 料金推移</h1>
-    <p class="lead" id="lead"></p>
 
     <!-- 契約タイプ切替 -->
     <div class="toggle" id="toggle">
@@ -193,27 +226,28 @@
     </div>
 
     <!-- 差額サマリー -->
-    <div class="card" id="diffCard" style="display:flex; align-items:center; gap:16px; flex-wrap:wrap">
-      <div id="diffMain" style="font-size:1.2rem; font-weight:800"></div>
-      <div id="diffSub" style="color:var(--sub); font-size:.85rem"></div>
+    <div class="card" id="diffCard">
+      <div id="diffMain"></div>
+      <div id="diffSub"></div>
     </div>
 
     <!-- ① ② ③ -->
     <div class="card">
-      <h2 style="margin:0 0 14px; font-size:1.05rem">大きく3つに分けると</h2>
+      <h2><span class="ic">①②③</span> 大きく3つに分けると</h2>
       <div class="splits" id="splits"></div>
     </div>
 
     <!-- タイムライン -->
     <div class="card">
-      <h2 style="margin:0 0 12px; font-size:1.05rem">時間軸イメージ（幅＝期間の長さ）</h2>
+      <h2><span class="ic">⏱</span> 時間軸イメージ（幅＝期間の長さ）</h2>
       <div class="timeline" id="timeline"></div>
       <div class="tlabels" id="tlabels"></div>
       <p class="note">縦の高さではなく横幅が「その料金が続く長さ」を表します。</p>
     </div>
 
-    <!-- 月別 積み上げ棒 -->
+    <!-- 月別 棒グラフ -->
     <div class="card">
+      <h2><span class="ic">📊</span> 月別の料金内訳</h2>
       <div class="legend" id="legend"></div>
       <div class="chart"><div class="bars" id="bars"></div></div>
       <p class="note">※ 棒の高さ＝月額合計、色＝内訳。解約前後の段差が見えます。</p>
@@ -221,14 +255,16 @@
 
     <!-- 詳細テーブル -->
     <div class="card">
-      <h2 style="margin:0 0 12px; font-size:1.05rem">月別 詳細テーブル</h2>
-      <table id="tbl">
-        <thead><tr><th>期間</th><th>内訳</th><th>月額合計</th><th>区分</th></tr></thead>
-        <tbody></tbody>
-      </table>
+      <h2><span class="ic">📋</span> 月別 詳細テーブル</h2>
+      <div class="tblwrap">
+        <table id="tbl">
+          <thead><tr><th>期間</th><th>内訳</th><th>月額合計</th><th>区分</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="card" style="font-size:.82rem; color:var(--sub)" id="assume"></div>
+    <div class="card" id="assume"></div>
   </div>
 </div>
 
@@ -236,11 +272,9 @@
 function ym(y,m){return y*12+(m-1);}
 function ymStr(s){const a=(s||'').split('-'); return ym(+a[0], +a[1]);}
 function fmtYM(v){const y=Math.floor(v/12), m=v%12+1; return y+'/'+String(m).padStart(2,'0');}
-function fmtInput(v){const y=Math.floor(v/12), m=v%12+1; return y+'-'+String(m).padStart(2,'0');}
 function yen(n){return Number(n).toLocaleString();}
 function clampInt(v,def){const n=parseInt(v,10); return isFinite(n)?n:def;}
 
-// 既定値（元のシミュレーションと同じ）
 const DEFAULTS={
   name:'', mode:'install',
   start:'2024-04', cancel:'2026-06',
@@ -248,7 +282,6 @@ const DEFAULTS={
   hDisc:3278, hFull:4378, discMonths:22
 };
 
-// ---- リンク用エンコード/デコード ----
 function encodeCfg(c){
   try{ return 'd='+btoa(unescape(encodeURIComponent(JSON.stringify(c)))); }
   catch(e){ return ''; }
@@ -261,22 +294,19 @@ function decodeCfg(){
     return Object.assign({}, DEFAULTS, o);
   }catch(e){ return null; }
 }
-
-// 表示モードの判定
 function isBuildMode(){
   const h=location.hash.slice(1);
   if(/(^|&)edit=1/.test(h) || h==='build' || h==='') return true;
-  return !decodeCfg(); // 不正なハッシュなら作成画面
+  return !decodeCfg();
 }
 
-// ====== 計算（cfg → 区切りブロック） ======
 function compute(cfg){
   const start=ymStr(cfg.start), cancel=ymStr(cfg.cancel), hStart=cancel+1;
   const discMonths=Math.max(1, clampInt(cfg.discMonths, 22));
   const discEnd=hStart+discMonths-1;
   let debtEnd=ymStr(cfg.debtEnd);
-  if(!(debtEnd>=hStart)) debtEnd=hStart-1;        // 残債が乗り換え前に終わる＝残債なし扱い
-  if(debtEnd>discEnd) debtEnd=discEnd;            // 念のため割引期間内に収める
+  if(!(debtEnd>=hStart)) debtEnd=hStart-1;
+  if(debtEnd>discEnd) debtEnd=discEnd;
   const tailEnd=discEnd+6;
   return {start,cancel,hStart,discMonths,discEnd,debtEnd,tailEnd};
 }
@@ -308,7 +338,6 @@ function buildBlocks(cfg, K){
   return blocks;
 }
 
-// ====== 描画 ======
 function render(cfg){
   const hasDebt=(cfg.mode==='install');
   const K=compute(cfg);
@@ -316,24 +345,20 @@ function render(cfg){
   const blocks=buildBlocks(cfg, K);
   const AIR=+cfg.air, DEBT=+cfg.debt, H_DISC=+cfg.hDisc, H_FULL=+cfg.hFull;
 
-  // 顧客名・リード文
   const cn=document.getElementById('custName');
-  if(cfg.name && cfg.name.trim()){ cn.style.display='block'; cn.textContent=cfg.name.trim()+' 専用 料金シミュレーション'; }
+  if(cfg.name && cfg.name.trim()){ cn.style.display='block'; cn.textContent=cfg.name.trim()+' 専用'; }
   else { cn.style.display='none'; }
   document.getElementById('lead').textContent=
-    `Speed Wi-Fi HOME 5G を ${fmtYM(K.start)} 利用開始 ／ ${fmtYM(K.cancel)} 解約 → ${fmtYM(K.hStart)} から nifty光へ乗り換えた場合のシミュレーション`;
+    `${fmtYM(K.start)} 利用開始 ／ ${fmtYM(K.cancel)} 解約 → ${fmtYM(K.hStart)} から nifty光へ乗り換えた場合の試算`;
 
-  // トグルの状態
   document.querySelectorAll('#toggle button').forEach(b=>b.classList.toggle('active', b.dataset.mode===cfg.mode));
 
-  // ---- 凡例 ----
   document.getElementById('legend').innerHTML=
     `<span><i class="dot" style="background:var(--air)"></i>Speed Wi-Fi HOME 5G ${yen(AIR)}円</span>`+
     (hasDebt?`<span id="debtLegend"><i class="dot" style="background:var(--debt)"></i>端末残債 ${yen(DEBT)}円</span>`:'')+
     `<span><i class="dot" style="background:var(--hikari)"></i>nifty光 割引 ${yen(H_DISC)}円</span>`+
     `<span><i class="dot" style="background:var(--hikari-up)"></i>nifty光 通常 ${yen(H_FULL)}円</span>`;
 
-  // ---- 差額サマリー ----
   const debtMonths=realDebt ? (K.debtEnd-K.hStart+1) : 0;
   const debtTotal=DEBT*debtMonths;
   const diffMain=document.getElementById('diffMain'), diffSub=document.getElementById('diffSub');
@@ -348,7 +373,6 @@ function render(cfg){
     diffSub.textContent=`返却で支払い終了。光だけの料金になります。`;
   }
 
-  // ---- 3区切りカード ----
   const m1=realDebt?(K.debtEnd-K.hStart+1):0;
   const m2=realDebt?(K.discEnd-K.debtEnd):0;
   const sp=document.getElementById('splits');
@@ -395,7 +419,6 @@ function render(cfg){
       <div class="bd">光の割引が終わり通常料金へ</div>
     </div>`;
 
-  // ---- タイムライン ----
   const totalMonths=K.tailEnd-K.start+1;
   const tl=document.getElementById('timeline'); tl.innerHTML='';
   const tlab=document.getElementById('tlabels'); tlab.innerHTML='';
@@ -407,7 +430,6 @@ function render(cfg){
       `<span style="flex:0 0 ${w}%">${fmtYM(b.from)}${isOpen?'〜':''}</span>`);
   });
 
-  // ---- 月別棒グラフ ----
   const months=[];
   for(let v=K.start; v<=K.tailEnd; v++){
     let air=0,debt=0,hik=0;
@@ -434,7 +456,6 @@ function render(cfg){
       </div>`);
   });
 
-  // ---- テーブル ----
   const tb=document.querySelector('#tbl tbody'); tb.innerHTML='';
   blocks.forEach((b,i)=>{
     const isOpen=(i===blocks.length-1), span=b.to-b.from+1;
@@ -452,7 +473,6 @@ function render(cfg){
       </tr>`);
   });
 
-  // ---- 前提条件 ----
   const as=document.getElementById('assume');
   if(realDebt){
     as.innerHTML=`<b style="color:var(--ink)">前提条件（分割払い）</b><br>
@@ -471,7 +491,6 @@ function render(cfg){
   }
 }
 
-// ====== 作成画面（営業用）======
 function readForm(){
   return {
     name:document.getElementById('f_name').value,
@@ -510,7 +529,6 @@ function updateBuilder(){
   return link;
 }
 
-// ====== 起動 ======
 function boot(){
   const buildMode=isBuildMode();
   const viewCfg=decodeCfg();
@@ -518,25 +536,21 @@ function boot(){
   if(buildMode){
     document.getElementById('builder').style.display='block';
     document.getElementById('editbar').style.display='none';
-    document.getElementById('toggle').style.display='none'; // 作成画面では契約タイプはフォームで選ぶ
+    document.getElementById('toggle').style.display='none';
     fillForm(viewCfg || DEFAULTS);
     updateBuilder();
-    // 入力監視
     ['f_name','f_mode','f_air','f_start','f_cancel','f_debt','f_debtEnd','f_hdisc','f_discMonths','f_hfull']
       .forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input',updateBuilder); el.addEventListener('change',updateBuilder); });
-    // コピー
     document.getElementById('copyBtn').addEventListener('click',()=>{
       const link=updateBuilder();
       const done=()=>{const c=document.getElementById('copied'); c.classList.add('show'); setTimeout(()=>c.classList.remove('show'),2200);};
       if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(link).then(done,()=>{document.getElementById('genlink').select();done();}); }
       else { document.getElementById('genlink').select(); try{document.execCommand('copy');}catch(e){} done(); }
     });
-    // 開く
     document.getElementById('openBtn').addEventListener('click',()=>{ window.open(updateBuilder(),'_blank'); });
   } else {
-    // お客さま表示
     document.getElementById('builder').style.display='none';
-    document.getElementById('editbar').style.display='block';
+    document.getElementById('editbar').style.display='none'; // お客さまには作成画面リンクを出さない
     document.getElementById('toggle').style.display='inline-flex';
     const cfg=viewCfg;
     render(cfg);
